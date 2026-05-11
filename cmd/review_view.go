@@ -35,6 +35,7 @@ func newReviewViewCommand() *cobra.Command {
 	cmd.Flags().BoolVar(&opts.NotOutdated, "not_outdated", false, "Exclude outdated threads")
 	cmd.Flags().IntVar(&opts.TailReplies, "tail", 0, "Limit to the last N replies per thread (0 = all)")
 	cmd.Flags().BoolVar(&opts.IncludeCommentNodeID, "include-comment-node-id", false, "Include comment_node_id fields for parent comments and replies")
+	cmd.Flags().BoolVar(&opts.Pretty, "pretty", false, "Pretty-print JSON output with indentation")
 
 	return cmd
 }
@@ -49,6 +50,7 @@ type reviewViewOptions struct {
 	NotOutdated          bool
 	TailReplies          int
 	IncludeCommentNodeID bool
+	Pretty               bool
 }
 
 func runReviewView(cmd *cobra.Command, opts *reviewViewOptions) error {
@@ -85,7 +87,7 @@ func runReviewView(cmd *cobra.Command, opts *reviewViewOptions) error {
 		return err
 	}
 
-	return encodeJSON(cmd, output)
+	return encodeJSON(cmd, output, opts.Pretty)
 }
 
 func parseStateFilters(raw []string) ([]report.State, bool, error) {

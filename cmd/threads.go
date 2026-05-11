@@ -76,7 +76,7 @@ func runThreadsList(cmd *cobra.Command, opts *threadsListOptions) error {
 		return err
 	}
 
-	return encodeJSON(cmd, payload)
+	return encodeJSON(cmd, payload, false)
 }
 
 func newThreadsResolveCommand() *cobra.Command {
@@ -168,5 +168,5 @@ func runThreadsMutation(cmd *cobra.Command, opts *threadsMutationOptions, resolv
 	if err != nil {
 		return err
 	}
-	return encodeJSON(cmd, result)
+	return encodeJSON(cmd, result, false)
 }

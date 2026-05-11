@@ -104,5 +104,5 @@ func runCommentsReply(cmd *cobra.Command, opts *commentsReplyOptions) error {
 	if reply.CommentNodeID == "" {
 		return errors.New("reply response missing comment node id")
 	}
-	return encodeJSON(cmd, map[string]string{"comment_node_id": reply.CommentNodeID})
+	return encodeJSON(cmd, map[string]string{"comment_node_id": reply.CommentNodeID}, false)
 }

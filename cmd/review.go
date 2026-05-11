@@ -42,6 +42,7 @@ func newReviewCommand() *cobra.Command {
 	cmd.Flags().IntVar(&opts.StartLine, "start-line", 0, "Start line for multi-line comments")
 	cmd.Flags().StringVar(&opts.StartSide, "start-side", "", "Start side for multi-line comments")
 	cmd.Flags().StringVar(&opts.Body, "body", "", "Comment or review body")
+	cmd.Flags().StringVar(&opts.BodyFile, "body-file", "", "Read comment or review body from file")
 	cmd.Flags().StringVar(&opts.Event, "event", opts.Event, "Review submission event (APPROVE, COMMENT, REQUEST_CHANGES)")
 
 	cmd.AddCommand(newReviewViewCommand())
@@ -66,6 +67,7 @@ type reviewOptions struct {
 	StartLine int
 	StartSide string
 	Body      string
+	BodyFile  string
 	Event     string
 }
 
@@ -109,7 +111,7 @@ func executeReviewStart(cmd *cobra.Command, service *reviewsvc.Service, pr resol
 	if err != nil {
 		return err
 	}
-	return encodeJSON(cmd, state)
+	return encodeJSON(cmd, state, false)
 }
 
 func executeReviewAddComment(cmd *cobra.Command, service *reviewsvc.Service, pr resolver.Identity, opts *reviewOptions) error {
@@ -119,6 +121,11 @@ func executeReviewAddComment(cmd *cobra.Command, service *reviewsvc.Service, pr 
 	}
 	if !strings.HasPrefix(reviewID, "PRR_") {
 		return fmt.Errorf("invalid --review-id %q: must be a GraphQL node id (PRR_...)", opts.ReviewID)
+	}
+
+	body, err := resolveBody(opts.Body, opts.BodyFile)
+	if err != nil {
+		return err
 	}
 
 	side, err := normalizeSide(opts.Side)
@@ -145,14 +152,14 @@ func executeReviewAddComment(cmd *cobra.Command, service *reviewsvc.Service, pr 
 		Side:      side,
 		StartLine: startLine,
 		StartSide: startSide,
-		Body:      opts.Body,
+		Body:      body,
 	}
 
 	thread, err := service.AddThread(pr, input)
 	if err != nil {
 		return err
 	}
-	return encodeJSON(cmd, thread)
+	return encodeJSON(cmd, thread, false)
 }
 
 func executeReviewSubmit(cmd *cobra.Command, service *reviewsvc.Service, pr resolver.Identity, opts *reviewOptions) error {
@@ -164,17 +171,21 @@ func executeReviewSubmit(cmd *cobra.Command, service *reviewsvc.Service, pr reso
 	if err != nil {
 		return err
 	}
+	body, err := resolveBody(opts.Body, opts.BodyFile)
+	if err != nil {
+		return err
+	}
 	input := reviewsvc.SubmitInput{
 		ReviewID: reviewID,
 		Event:    event,
-		Body:     opts.Body,
+		Body:     body,
 	}
 	status, err := service.Submit(pr, input)
 	if err != nil {
 		return err
 	}
 	if status.Success {
-		return encodeJSON(cmd, map[string]string{"status": "Review submitted successfully"})
+		return encodeJSON(cmd, map[string]string{"status": "Review submitted successfully"}, false)
 	}
 	failure := map[string]interface{}{
 		"status": "Review submission failed",
@@ -182,7 +193,7 @@ func executeReviewSubmit(cmd *cobra.Command, service *reviewsvc.Service, pr reso
 	if len(status.Errors) > 0 {
 		failure["errors"] = status.Errors
 	}
-	if err := encodeJSON(cmd, failure); err != nil {
+	if err := encodeJSON(cmd, failure, false); err != nil {
 		return err
 	}
 	return errors.New("review submission failed")
@@ -229,4 +240,18 @@ func ensureGraphQLReviewID(value string) (string, error) {
 		return "", fmt.Errorf("--review-id %q is a REST review id; provide the GraphQL review node id (PRR_...)", id)
 	}
 	return "", fmt.Errorf("--review-id %q is not a GraphQL review node id (expected prefix PRR_)", id)
+}
+
+func resolveBody(body, bodyFile string) (string, error) {
+	if bodyFile != "" && body != "" {
+		return "", errors.New("--body and --body-file cannot be used together")
+	}
+	if bodyFile != "" {
+		data, err := os.ReadFile(bodyFile)
+		if err != nil {
+			return "", fmt.Errorf("read body file %q: %w", bodyFile, err)
+		}
+		return string(data), nil
+	}
+	return body, nil
 }

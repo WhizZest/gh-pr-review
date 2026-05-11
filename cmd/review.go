@@ -43,6 +43,7 @@ func newReviewCommand() *cobra.Command {
 	cmd.Flags().StringVar(&opts.StartSide, "start-side", "", "Start side for multi-line comments")
 	cmd.Flags().StringVar(&opts.Body, "body", "", "Comment or review body")
 	cmd.Flags().StringVar(&opts.BodyFile, "body-file", "", "Read comment or review body from file")
+	cmd.MarkFlagsMutuallyExclusive("body", "body-file")
 	cmd.Flags().StringVar(&opts.Event, "event", opts.Event, "Review submission event (APPROVE, COMMENT, REQUEST_CHANGES)")
 
 	cmd.AddCommand(newReviewViewCommand())
@@ -251,7 +252,7 @@ func resolveBody(body, bodyFile string) (string, error) {
 		if err != nil {
 			return "", fmt.Errorf("read body file %q: %w", bodyFile, err)
 		}
-		return string(data), nil
+		return strings.TrimSpace(string(data)), nil
 	}
 	return body, nil
 }

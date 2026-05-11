@@ -317,3 +317,14 @@ func TestResolveBody_BothEmpty(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "", got)
 }
+
+func TestResolveBody_BodyFileTrimsWhitespace(t *testing.T) {
+	content := "  hello world\n  \n"
+	dir := t.TempDir()
+	filePath := dir + "/body.txt"
+	require.NoError(t, os.WriteFile(filePath, []byte(content), 0644))
+
+	got, err := resolveBody("", filePath)
+	require.NoError(t, err)
+	assert.Equal(t, "hello world", got)
+}

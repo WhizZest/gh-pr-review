@@ -29,7 +29,7 @@ This tool is particularly useful for:
 First, ensure the extension is installed:
 
 ```sh
-gh extension install agynio/gh-pr-review
+gh extension install WhizZest/gh-pr-review
 ```
 
 ## Core Commands

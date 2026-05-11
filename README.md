@@ -337,7 +337,7 @@ npx skills add WhizZest/gh-pr-review -g
 
 This command will:
 - Install the gh-pr-review extension via `gh extension install`
-- Register the skill with your AI agent using the [SKILL.md](SKILL.md) definition
+- Register the skill with your AI agent using the [SKILL.md](skills/gh-pr-review/SKILL.md) definition
 - Make all gh-pr-review commands available as skill actions
 
 ### What the Skill Provides
@@ -366,7 +366,7 @@ Agent: gh pr-review threads resolve 42 -R owner/repo --thread-id PRRT_...
 
 ### Skill Documentation
 
-See [SKILL.md](SKILL.md) for complete skill documentation including:
+See [SKILL.md](skills/gh-pr-review/SKILL.md) for complete skill documentation including:
 - Core commands reference
 - JSON output schemas
 - Best practices for agents

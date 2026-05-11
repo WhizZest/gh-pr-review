@@ -214,7 +214,7 @@ gh pr-review review view --unresolved --not_outdated -R owner/repo --pr $(gh pr 
 
 ## Documentation Links
 
-- Usage guide: docs/USAGE.md
-- JSON schemas: docs/SCHEMAS.md
-- Agent workflows: docs/AGENTS.md
+- Usage guide: ../../docs/USAGE.md
+- JSON schemas: ../../docs/SCHEMAS.md
+- Agent workflows: ../../docs/AGENTS.md
 - Blog post: https://agyn.io/blog/gh-pr-review-cli-agent-workflows

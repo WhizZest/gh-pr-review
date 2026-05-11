@@ -33,9 +33,9 @@ The quickest path from opening a pending review to resolving threads:
 1. **Install or upgrade the extension.**
 
    ```sh
-   gh extension install agynio/gh-pr-review
+   gh extension install WhizZest/gh-pr-review
    # Update an existing installation
-   gh extension upgrade agynio/gh-pr-review
+   gh extension upgrade WhizZest/gh-pr-review
    ```
 
 
@@ -184,9 +184,9 @@ gh pr-review review view -R owner/repo --pr 3
 Install or upgrade to **v1.6.0 or newer** (GraphQL-only thread resolution and minimal comment replies):
 
 ```sh
-gh extension install agynio/gh-pr-review
+gh extension install WhizZest/gh-pr-review
 # Update an existing installation
-gh extension upgrade agynio/gh-pr-review
+gh extension upgrade WhizZest/gh-pr-review
 ```
 
 ### Command behavior
@@ -299,17 +299,17 @@ Each command binds to a single GitHub backend—there are no runtime fallbacks.
 To add gh-pr-review as a skill to your AI coding agent:
 
 ```sh
-npx skills add agynio/gh-pr-review
+npx skills add WhizZest/gh-pr-review
 ```
 
 Additional options:
 
 ```sh
 # Install to a specific agent
-npx skills add agynio/gh-pr-review -a claude-code
+npx skills add WhizZest/gh-pr-review -a claude-code
 
 # Install globally (available across all projects)
-npx skills add agynio/gh-pr-review -g
+npx skills add WhizZest/gh-pr-review -g
 ```
 
 This command will:

@@ -55,6 +55,9 @@ func newCommentsReplyCommand(parent *commentsOptions) *cobra.Command {
 			if opts.Pull == 0 {
 				opts.Pull = parent.Pull
 			}
+			if opts.Body == "" && opts.BodyFile == "" {
+				return errors.New("either --body or --body-file is required")
+			}
 			return runCommentsReply(cmd, opts)
 		},
 	}

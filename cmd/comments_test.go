@@ -287,3 +287,23 @@ func TestCommentsReplyCommandWithBodyFile(t *testing.T) {
 	require.NoError(t, json.Unmarshal(stdout.Bytes(), &payload))
 	assert.Equal(t, "PRRC_reply", payload["comment_node_id"])
 }
+
+func TestCommentsReplyCommandRequiresBodyOrBodyFile(t *testing.T) {
+	originalFactory := apiClientFactory
+	defer func() { apiClientFactory = originalFactory }()
+
+	fake := &commandFakeAPI{}
+	fake.graphqlFunc = func(query string, variables map[string]interface{}, result interface{}) error {
+		return errors.New("unexpected graphql invocation")
+	}
+	apiClientFactory = func(host string) ghcli.API { return fake }
+
+	root := newRootCommand()
+	root.SetOut(&bytes.Buffer{})
+	root.SetErr(&bytes.Buffer{})
+	root.SetArgs([]string{"comments", "reply", "--thread-id", "PRRT_thread", "--repo", "octo/demo", "7"})
+
+	err := root.Execute()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "--body or --body-file")
+}

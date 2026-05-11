@@ -217,3 +217,93 @@ func TestMain(m *testing.M) {
 	_ = os.Unsetenv("GH_HOST")
 	os.Exit(m.Run())
 }
+
+func TestCommentsReplyCommandWithBodyFile(t *testing.T) {
+	originalFactory := apiClientFactory
+	defer func() { apiClientFactory = originalFactory }()
+
+	fake := &commandFakeAPI{}
+	fake.graphqlFunc = func(query string, variables map[string]interface{}, result interface{}) error {
+		switch {
+		case strings.Contains(query, "AddPullRequestReviewThreadReply"):
+			input, ok := variables["input"].(map[string]interface{})
+			require.True(t, ok)
+			require.Equal(t, "PRRT_thread", input["pullRequestReviewThreadId"])
+			require.Equal(t, "file content here", input["body"])
+
+			payload := map[string]interface{}{
+				"addPullRequestReviewThreadReply": map[string]interface{}{
+					"comment": map[string]interface{}{
+						"id":          "PRRC_reply",
+						"body":        "file content here",
+						"publishedAt": "2025-12-03T10:00:00Z",
+						"author":      map[string]interface{}{"login": "octocat"},
+					},
+				},
+			}
+			return assignJSON(result, payload)
+		case strings.Contains(query, "PullRequestReviewCommentDetails"):
+			payload := map[string]interface{}{
+				"node": map[string]interface{}{
+					"id":         "PRRC_reply",
+					"databaseId": nil,
+					"body":       "file content here",
+					"author":     map[string]interface{}{"login": "octocat"},
+				},
+			}
+			return assignJSON(result, payload)
+		case strings.Contains(query, "PullRequestReviewThreadDetails"):
+			payload := map[string]interface{}{
+				"node": map[string]interface{}{
+					"id":         "PRRT_thread",
+					"isResolved": true,
+					"isOutdated": false,
+				},
+			}
+			return assignJSON(result, payload)
+		default:
+			t.Fatalf("unexpected query: %s", query)
+			return nil
+		}
+	}
+	apiClientFactory = func(host string) ghcli.API { return fake }
+
+	dir := t.TempDir()
+	filePath := dir + "/reply.txt"
+	require.NoError(t, os.WriteFile(filePath, []byte("file content here"), 0644))
+
+	root := newRootCommand()
+	stdout := &bytes.Buffer{}
+	stderr := &bytes.Buffer{}
+	root.SetOut(stdout)
+	root.SetErr(stderr)
+	root.SetArgs([]string{"comments", "reply", "--thread-id", "PRRT_thread", "--body-file", filePath, "--repo", "octo/demo", "7"})
+
+	err := root.Execute()
+	require.NoError(t, err)
+	assert.Empty(t, stderr.String())
+
+	var payload map[string]interface{}
+	require.NoError(t, json.Unmarshal(stdout.Bytes(), &payload))
+	assert.Equal(t, "PRRC_reply", payload["comment_node_id"])
+}
+
+func TestCommentsReplyCommandRequiresBodyOrBodyFile(t *testing.T) {
+	originalFactory := apiClientFactory
+	defer func() { apiClientFactory = originalFactory }()
+
+	fake := &commandFakeAPI{}
+	fake.graphqlFunc = func(query string, variables map[string]interface{}, result interface{}) error {
+		return errors.New("unexpected graphql invocation")
+	}
+	apiClientFactory = func(host string) ghcli.API { return fake }
+
+	root := newRootCommand()
+	root.SetOut(&bytes.Buffer{})
+	root.SetErr(&bytes.Buffer{})
+	root.SetArgs([]string{"comments", "reply", "--thread-id", "PRRT_thread", "--repo", "octo/demo", "7"})
+
+	err := root.Execute()
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "--body or --body-file")
+}

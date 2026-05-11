@@ -55,6 +55,9 @@ func newCommentsReplyCommand(parent *commentsOptions) *cobra.Command {
 			if opts.Pull == 0 {
 				opts.Pull = parent.Pull
 			}
+			if opts.Body == "" && opts.BodyFile == "" {
+				return errors.New("either --body or --body-file is required")
+			}
 			return runCommentsReply(cmd, opts)
 		},
 	}
@@ -64,8 +67,9 @@ func newCommentsReplyCommand(parent *commentsOptions) *cobra.Command {
 	cmd.Flags().StringVar(&opts.ThreadID, "thread-id", "", "Review thread identifier to reply to")
 	cmd.Flags().StringVar(&opts.ReviewID, "review-id", "", "GraphQL review identifier when replying inside a pending review")
 	cmd.Flags().StringVar(&opts.Body, "body", "", "Reply text")
+	cmd.Flags().StringVar(&opts.BodyFile, "body-file", "", "Read reply text from file")
+	cmd.MarkFlagsMutuallyExclusive("body", "body-file")
 	_ = cmd.MarkFlagRequired("thread-id")
-	_ = cmd.MarkFlagRequired("body")
 
 	return cmd
 }
@@ -77,6 +81,7 @@ type commentsReplyOptions struct {
 	ThreadID string
 	ReviewID string
 	Body     string
+	BodyFile string
 }
 
 func runCommentsReply(cmd *cobra.Command, opts *commentsReplyOptions) error {
@@ -91,12 +96,17 @@ func runCommentsReply(cmd *cobra.Command, opts *commentsReplyOptions) error {
 		return err
 	}
 
+	body, err := resolveBody(opts.Body, opts.BodyFile)
+	if err != nil {
+		return err
+	}
+
 	service := comments.NewService(apiClientFactory(identity.Host))
 
 	reply, err := service.Reply(identity, comments.ReplyOptions{
 		ThreadID: opts.ThreadID,
 		ReviewID: opts.ReviewID,
-		Body:     opts.Body,
+		Body:     body,
 	})
 	if err != nil {
 		return err

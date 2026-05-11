@@ -73,6 +73,18 @@ The quickest path from opening a pending review to resolving threads:
    }
    ```
 
+   For longer comments, you can read the body from a file with `--body-file`
+   (mutually exclusive with `--body`):
+
+   ```sh
+   gh pr-review review --add-comment \
+     --review-id PRR_kwDOAAABbcdEFG12 \
+     --path internal/service.go \
+     --line 42 \
+     --body-file ./comment.md \
+     -R owner/repo 42
+   ```
+
 4. **Inspect review threads (GraphQL).** `review view` surfaces pending
    review summaries, thread state, and inline comment metadata. Thread IDs are
    always included; enable `--include-comment-node-id` when you also need the
@@ -130,6 +142,16 @@ The quickest path from opening a pending review to resolving threads:
    {
      "status": "Review submitted successfully"
    }
+   ```
+
+   You can also read the review body from a file with `--body-file`:
+
+   ```sh
+   gh pr-review review --submit \
+     --review-id PRR_kwDOAAABbcdEFG12 \
+     --event APPROVE \
+     --body-file ./review-body.md \
+     -R owner/repo 42
    ```
 
    On GraphQL errors, the command exits non-zero after emitting:
@@ -212,6 +234,7 @@ For the full canonical response structure, see docs/SCHEMAS.md.
 | `--not_outdated` | Exclude threads marked as outdated. |
 | `--tail <n>` | Retain only the last `n` replies per thread (0 = all). The parent inline comment is always kept; only replies are trimmed. |
 | `--include-comment-node-id` | Add GraphQL comment node identifiers to parent comments and replies. |
+| `--pretty` | Pretty-print JSON output with indentation. |
 
 ### Examples
 

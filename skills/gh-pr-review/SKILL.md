@@ -29,7 +29,7 @@ This tool is particularly useful for:
 First, ensure the extension is installed:
 
 ```sh
-gh extension install agynio/gh-pr-review
+gh extension install WhizZest/gh-pr-review
 ```
 
 ## Core Commands
@@ -48,6 +48,8 @@ gh pr-review review view -R owner/repo --pr <number>
 - `--states <APPROVED|CHANGES_REQUESTED|COMMENTED|DISMISSED>` - Filter by review state
 - `--tail <n>` - Keep only last n replies per thread
 - `--not_outdated` - Exclude outdated threads
+- `--include-comment-node-id` - Include `comment_node_id` fields for parent comments and replies
+- `--pretty` - Pretty-print JSON output with indentation
 
 **Output:** Structured JSON with reviews, comments, thread_ids, and resolution status.
 
@@ -96,6 +98,19 @@ gh pr-review review --add-comment \
   -R owner/repo <pr-number>
 ```
 
+You can also read the comment body from a file (useful for long comments):
+
+```sh
+gh pr-review review --add-comment \
+  --review-id <PRR_...> \
+  --path <file-path> \
+  --line <line-number> \
+  --body-file ./review-comment.md \
+  -R owner/repo <pr-number>
+```
+
+Note: `--body` and `--body-file` are mutually exclusive.
+
 Submit the review:
 
 ```sh
@@ -105,6 +120,18 @@ gh pr-review review --submit \
   --body "Overall review summary" \
   -R owner/repo <pr-number>
 ```
+
+You can also read the review body from a file:
+
+```sh
+gh pr-review review --submit \
+  --review-id <PRR_...> \
+  --event <APPROVE|REQUEST_CHANGES|COMMENT> \
+  --body-file ./review-body.md \
+  -R owner/repo <pr-number>
+```
+
+Note: `--body` and `--body-file` are mutually exclusive.
 
 ## Output Format
 
@@ -187,7 +214,7 @@ gh pr-review review view --unresolved --not_outdated -R owner/repo --pr $(gh pr 
 
 ## Documentation Links
 
-- Usage guide: docs/USAGE.md
-- JSON schemas: docs/SCHEMAS.md
-- Agent workflows: docs/AGENTS.md
+- Usage guide: ../../docs/USAGE.md
+- JSON schemas: ../../docs/SCHEMAS.md
+- Agent workflows: ../../docs/AGENTS.md
 - Blog post: https://agyn.io/blog/gh-pr-review-cli-agent-workflows

@@ -33,9 +33,9 @@ The quickest path from opening a pending review to resolving threads:
 1. **Install or upgrade the extension.**
 
    ```sh
-   gh extension install agynio/gh-pr-review
+   gh extension install WhizZest/gh-pr-review
    # Update an existing installation
-   gh extension upgrade agynio/gh-pr-review
+   gh extension upgrade WhizZest/gh-pr-review
    ```
 
 
@@ -71,6 +71,18 @@ The quickest path from opening a pending review to resolving threads:
      "is_outdated": false,
      "line": 42
    }
+   ```
+
+   For longer comments, you can read the body from a file with `--body-file`
+   (mutually exclusive with `--body`):
+
+   ```sh
+   gh pr-review review --add-comment \
+     --review-id PRR_kwDOAAABbcdEFG12 \
+     --path internal/service.go \
+     --line 42 \
+     --body-file ./comment.md \
+     -R owner/repo 42
    ```
 
 4. **Inspect review threads (GraphQL).** `review view` surfaces pending
@@ -132,6 +144,16 @@ The quickest path from opening a pending review to resolving threads:
    }
    ```
 
+   You can also read the review body from a file with `--body-file`:
+
+   ```sh
+   gh pr-review review --submit \
+     --review-id PRR_kwDOAAABbcdEFG12 \
+     --event APPROVE \
+     --body-file ./review-body.md \
+     -R owner/repo 42
+   ```
+
    On GraphQL errors, the command exits non-zero after emitting:
 
    ```json
@@ -184,9 +206,9 @@ gh pr-review review view -R owner/repo --pr 3
 Install or upgrade to **v1.6.0 or newer** (GraphQL-only thread resolution and minimal comment replies):
 
 ```sh
-gh extension install agynio/gh-pr-review
+gh extension install WhizZest/gh-pr-review
 # Update an existing installation
-gh extension upgrade agynio/gh-pr-review
+gh extension upgrade WhizZest/gh-pr-review
 ```
 
 ### Command behavior
@@ -212,6 +234,7 @@ For the full canonical response structure, see docs/SCHEMAS.md.
 | `--not_outdated` | Exclude threads marked as outdated. |
 | `--tail <n>` | Retain only the last `n` replies per thread (0 = all). The parent inline comment is always kept; only replies are trimmed. |
 | `--include-comment-node-id` | Add GraphQL comment node identifiers to parent comments and replies. |
+| `--pretty` | Pretty-print JSON output with indentation. |
 
 ### Examples
 
@@ -299,22 +322,22 @@ Each command binds to a single GitHub backend—there are no runtime fallbacks.
 To add gh-pr-review as a skill to your AI coding agent:
 
 ```sh
-npx skills add agynio/gh-pr-review
+npx skills add WhizZest/gh-pr-review
 ```
 
 Additional options:
 
 ```sh
 # Install to a specific agent
-npx skills add agynio/gh-pr-review -a claude-code
+npx skills add WhizZest/gh-pr-review -a claude-code
 
 # Install globally (available across all projects)
-npx skills add agynio/gh-pr-review -g
+npx skills add WhizZest/gh-pr-review -g
 ```
 
 This command will:
 - Install the gh-pr-review extension via `gh extension install`
-- Register the skill with your AI agent using the [SKILL.md](SKILL.md) definition
+- Register the skill with your AI agent using the [SKILL.md](skills/gh-pr-review/SKILL.md) definition
 - Make all gh-pr-review commands available as skill actions
 
 ### What the Skill Provides
@@ -343,7 +366,7 @@ Agent: gh pr-review threads resolve 42 -R owner/repo --thread-id PRRT_...
 
 ### Skill Documentation
 
-See [SKILL.md](SKILL.md) for complete skill documentation including:
+See [SKILL.md](skills/gh-pr-review/SKILL.md) for complete skill documentation including:
 - Core commands reference
 - JSON output schemas
 - Best practices for agents

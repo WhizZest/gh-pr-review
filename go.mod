@@ -1,4 +1,4 @@
-module github.com/agynio/gh-pr-review
+module github.com/WhizZest/gh-pr-review
 
 go 1.22
 

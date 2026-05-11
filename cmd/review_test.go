@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"os"
 	"testing"
 
 	"github.com/agynio/gh-pr-review/internal/ghcli"
@@ -280,4 +281,50 @@ func TestReviewSubmitCommandHandlesGraphQLErrors(t *testing.T) {
 	first, ok := errorsField[0].(map[string]interface{})
 	require.True(t, ok)
 	assert.Equal(t, "mutation failed", first["message"])
+}
+
+func TestResolveBody_OnlyBody(t *testing.T) {
+	got, err := resolveBody("hello world", "")
+	require.NoError(t, err)
+	assert.Equal(t, "hello world", got)
+}
+
+func TestResolveBody_OnlyBodyFile(t *testing.T) {
+	content := "file content here"
+	dir := t.TempDir()
+	filePath := dir + "/body.txt"
+	require.NoError(t, os.WriteFile(filePath, []byte(content), 0644))
+
+	got, err := resolveBody("", filePath)
+	require.NoError(t, err)
+	assert.Equal(t, content, got)
+}
+
+func TestResolveBody_BodyFileNotFound(t *testing.T) {
+	_, err := resolveBody("", "/nonexistent/path.txt")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "read body file")
+}
+
+func TestResolveBody_BothBodyAndBodyFile(t *testing.T) {
+	_, err := resolveBody("body-text", "/some/file.txt")
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "cannot be used together")
+}
+
+func TestResolveBody_BothEmpty(t *testing.T) {
+	got, err := resolveBody("", "")
+	require.NoError(t, err)
+	assert.Equal(t, "", got)
+}
+
+func TestResolveBody_BodyFileTrimsWhitespace(t *testing.T) {
+	content := "  hello world\n  \n"
+	dir := t.TempDir()
+	filePath := dir + "/body.txt"
+	require.NoError(t, os.WriteFile(filePath, []byte(content), 0644))
+
+	got, err := resolveBody("", filePath)
+	require.NoError(t, err)
+	assert.Equal(t, "hello world", got)
 }
